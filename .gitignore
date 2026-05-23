@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+mysql-data/
+docker-compose.yml
+Dockerfile
+.dockerignore
