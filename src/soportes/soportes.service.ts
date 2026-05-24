@@ -354,7 +354,7 @@ export class SoportesService {
       const lastMsg = msgs[msgs.length - 1];
       sheet.addRow({
         id: s.id,
-        titulo: s.titulo || s.motivo || '',
+        titulo: s.titulo || '',
         estado: s.estado,
         entidad: s.entidad?.nombre || '',
         usuario: s.usuario?.nombre || '',

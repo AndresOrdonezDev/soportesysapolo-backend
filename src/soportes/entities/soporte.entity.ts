@@ -24,10 +24,6 @@ export class Soporte {
   @Column({ length: 200, nullable: true })
   titulo: string;
 
-  // Kept nullable for backward compat with old rows that have motivo
-  @Column({ type: 'text', nullable: true })
-  motivo: string;
-
   @Column({
     type: 'enum',
     enum: SoporteEstado,
