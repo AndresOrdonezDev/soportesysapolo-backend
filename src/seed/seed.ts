@@ -2,7 +2,12 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User, UserRole } from '../users/entities/user.entity';
+import { UsuarioScope } from '../users/entities/usuario-scope.entity';
 import { Soporte } from '../soportes/entities/soporte.entity';
+import { SoporteMensaje } from '../soportes/entities/soporte-mensaje.entity';
+import { SoporteAdjunto } from '../soportes/entities/soporte-adjunto.entity';
+import { Entidad } from '../entidades/entities/entidad.entity';
+import { Area } from '../areas/entities/area.entity';
 
 const AppDataSource = new DataSource({
   type: 'mysql',
@@ -11,7 +16,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || 'root',
   database: process.env.DB_NAME || 'soportesysapolo',
-  entities: [User, Soporte],
+  entities: [User, UsuarioScope, Soporte, SoporteMensaje, SoporteAdjunto, Entidad, Area],
   synchronize: true,
 });
 
