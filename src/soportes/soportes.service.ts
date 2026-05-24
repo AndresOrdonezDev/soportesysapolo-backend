@@ -59,9 +59,13 @@ export class SoportesService {
     const soporte = await this.soportesRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.usuario', 'usuario')
+      .leftJoinAndSelect('usuario.scope', 'uScope')
+      .leftJoinAndSelect('uScope.area', 'uScopeArea')
       .leftJoinAndSelect('s.entidad', 'entidad')
       .leftJoinAndSelect('s.mensajes', 'mensajes')
       .leftJoinAndSelect('mensajes.usuario', 'mUsuario')
+      .leftJoinAndSelect('mUsuario.scope', 'mScope')
+      .leftJoinAndSelect('mScope.area', 'mScopeArea')
       .leftJoinAndSelect('mensajes.adjuntos', 'adjuntos')
       .where('s.id = :id', { id })
       .orderBy('mensajes.fechaCreacion', 'ASC')
@@ -300,6 +304,8 @@ export class SoportesService {
     const qb = this.soportesRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.usuario', 'usuario')
+      .leftJoinAndSelect('usuario.scope', 'exScope')
+      .leftJoinAndSelect('exScope.area', 'exScopeArea')
       .leftJoinAndSelect('s.entidad', 'entidad')
       .leftJoinAndSelect('s.mensajes', 'mensajes')
       .where('DATE(s.fechaSolicitud) BETWEEN :desde AND :hasta', { desde, hasta })
@@ -358,7 +364,7 @@ export class SoportesService {
         estado: s.estado,
         entidad: s.entidad?.nombre || '',
         usuario: s.usuario?.nombre || '',
-        area: s.usuario?.area || '',
+        area: s.usuario?.scope?.[0]?.area?.nombre || '',
         telefono: s.usuario?.telefono || '',
         fechaSolicitud: s.fechaSolicitud
           ? new Date(s.fechaSolicitud).toLocaleString('es-CO')

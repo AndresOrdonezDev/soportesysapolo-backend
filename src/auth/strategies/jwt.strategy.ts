@@ -19,7 +19,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       alias: payload.alias,
       nombre: payload.nombre,
       role: payload.role,
-      area: payload.area,
     };
   }
 }

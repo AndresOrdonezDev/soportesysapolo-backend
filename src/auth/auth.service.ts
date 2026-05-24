@@ -25,7 +25,6 @@ export class AuthService {
       alias: user.alias,
       nombre: user.nombre,
       role: user.role,
-      area: user.area,
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -34,7 +33,6 @@ export class AuthService {
         nombre: user.nombre,
         alias: user.alias,
         role: user.role,
-        area: user.area,
         telefono: user.telefono,
       },
     };

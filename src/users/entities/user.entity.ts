@@ -14,17 +14,6 @@ export enum UserRole {
   USER = 'user',
 }
 
-export enum UserArea {
-  CONTABILIDAD = 'Contabilidad',
-  PRESUPUESTO = 'Presupuesto',
-  DESPACHO = 'Despacho',
-  TESORERIA = 'Tesorería',
-  RENTAS = 'Rentas',
-  PENSIONES = 'Pensiones',
-  GENERAL = 'General',
-  OTRA = 'Otra',
-}
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
@@ -45,13 +34,6 @@ export class User {
     default: UserRole.USER,
   })
   role: UserRole;
-
-  @Column({
-    type: 'enum',
-    enum: UserArea,
-    default: UserArea.GENERAL,
-  })
-  area: UserArea;
 
   @Column({ length: 20, nullable: true })
   telefono: string;
