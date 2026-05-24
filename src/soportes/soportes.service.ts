@@ -308,8 +308,10 @@ export class SoportesService {
       .leftJoinAndSelect('exScope.area', 'exScopeArea')
       .leftJoinAndSelect('s.entidad', 'entidad')
       .leftJoinAndSelect('s.mensajes', 'mensajes')
+      .leftJoinAndSelect('mensajes.usuario', 'mUsuario')
       .where('DATE(s.fechaSolicitud) BETWEEN :desde AND :hasta', { desde, hasta })
-      .orderBy('s.fechaSolicitud', 'DESC');
+      .orderBy('s.fechaSolicitud', 'DESC')
+      .addOrderBy('mensajes.fechaCreacion', 'ASC');
 
     if (user.role === UserRole.SOPORTE) {
       const scopeIds = await this.getScopeEntidadIds(user.id);
@@ -319,7 +321,6 @@ export class SoportesService {
           : scopeIds;
       if (!validIds.length) return Buffer.from([]);
       qb.andWhere('s.entidadId IN (:...entidadIds)', { entidadIds: validIds });
-      // Solo tickets donde este soporte ha respondido (para medir efectividad)
       qb.innerJoin(
         's.mensajes',
         'miMsg',
@@ -333,46 +334,143 @@ export class SoportesService {
     const soportes = await qb.getMany();
 
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Solicitudes');
+    workbook.creator = 'SysApolo';
+    workbook.created = new Date();
 
-    sheet.columns = [
-      { header: 'ID', key: 'id', width: 8 },
-      { header: 'Título', key: 'titulo', width: 35 },
-      { header: 'Estado', key: 'estado', width: 12 },
-      { header: 'Entidad', key: 'entidad', width: 30 },
-      { header: 'Solicitante', key: 'usuario', width: 25 },
-      { header: 'Área', key: 'area', width: 18 },
-      { header: 'Teléfono', key: 'telefono', width: 15 },
-      { header: 'Fecha Solicitud', key: 'fechaSolicitud', width: 20 },
-      { header: 'Último mensaje', key: 'ultimoMensaje', width: 20 },
-      { header: 'Cant. mensajes', key: 'cantMensajes', width: 15 },
-    ];
-
-    sheet.getRow(1).fill = {
+    const headerFill: ExcelJS.Fill = {
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: 'FF1E40AF' },
     };
-    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    const headerFont: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    // ── Hoja 1: Resumen de Tickets ────────────────────────────────────────
+    const sheet1 = workbook.addWorksheet('Resumen de Tickets');
+
+    sheet1.columns = [
+      { header: 'ID',                   key: 'id',              width: 8  },
+      { header: 'Título / Asunto',      key: 'titulo',          width: 38 },
+      { header: 'Estado',               key: 'estado',          width: 12 },
+      { header: 'Entidad',              key: 'entidad',         width: 28 },
+      { header: 'Solicitante',          key: 'solicitante',     width: 25 },
+      { header: 'Área / Oficina',       key: 'area',            width: 20 },
+      { header: 'Teléfono',             key: 'telefono',        width: 15 },
+      { header: 'Fecha Solicitud',      key: 'fechaSolicitud',  width: 20 },
+      { header: 'Descripción inicial',  key: 'descripcion',     width: 45 },
+      { header: 'Atendido por',         key: 'atendidoPor',     width: 25 },
+      { header: 'Fecha 1ª respuesta',   key: 'fechaRespuesta',  width: 20 },
+      { header: 'Tiempo de respuesta',  key: 'tiempoRespuesta', width: 20 },
+      { header: 'Total mensajes',       key: 'totalMensajes',   width: 15 },
+      { header: 'Última actividad',     key: 'ultimaActividad', width: 20 },
+    ];
+
+    sheet1.getRow(1).fill = headerFill;
+    sheet1.getRow(1).font = headerFont;
+    sheet1.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet1.getRow(1).height = 20;
+    sheet1.getColumn('descripcion').alignment = { wrapText: true, vertical: 'top' };
 
     soportes.forEach((s) => {
-      const msgs = s.mensajes ?? [];
-      const lastMsg = msgs[msgs.length - 1];
-      sheet.addRow({
-        id: s.id,
-        titulo: s.titulo || '',
-        estado: s.estado,
-        entidad: s.entidad?.nombre || '',
-        usuario: s.usuario?.nombre || '',
-        area: s.usuario?.scope?.[0]?.area?.nombre || '',
-        telefono: s.usuario?.telefono || '',
-        fechaSolicitud: s.fechaSolicitud
-          ? new Date(s.fechaSolicitud).toLocaleString('es-CO')
-          : '',
-        ultimoMensaje: lastMsg?.fechaCreacion
-          ? new Date(lastMsg.fechaCreacion).toLocaleString('es-CO')
-          : '',
-        cantMensajes: msgs.length,
+      const msgs = (s.mensajes ?? []).slice().sort(
+        (a, b) => new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime(),
+      );
+
+      const firstMsg       = msgs[0];
+      const lastMsg        = msgs[msgs.length - 1];
+      const firstSoporteMsg = msgs.find(
+        (m) => m.usuario?.role === 'soporte' || m.usuario?.role === 'admin',
+      );
+
+      let tiempoRespuesta = '—';
+      if (firstSoporteMsg) {
+        const diffMs   = new Date(firstSoporteMsg.fechaCreacion).getTime() - new Date(s.fechaSolicitud).getTime();
+        const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+        if (diffMins < 60) {
+          tiempoRespuesta = `${diffMins} min`;
+        } else {
+          const h = Math.floor(diffMins / 60);
+          const m = diffMins % 60;
+          tiempoRespuesta = m > 0 ? `${h}h ${m}min` : `${h}h`;
+        }
+      }
+
+      const row = sheet1.addRow({
+        id:              s.id,
+        titulo:          s.titulo || '',
+        estado:          s.estado === 'resuelto' ? 'Atendido' : 'Pendiente',
+        entidad:         s.entidad?.nombre || '',
+        solicitante:     s.usuario?.nombre || '',
+        area:            s.usuario?.scope?.[0]?.area?.nombre || '',
+        telefono:        s.usuario?.telefono || '',
+        fechaSolicitud:  s.fechaSolicitud  ? new Date(s.fechaSolicitud).toLocaleString('es-CO')  : '',
+        descripcion:     firstMsg?.texto   || '',
+        atendidoPor:     firstSoporteMsg?.usuario?.nombre || '—',
+        fechaRespuesta:  firstSoporteMsg   ? new Date(firstSoporteMsg.fechaCreacion).toLocaleString('es-CO') : '—',
+        tiempoRespuesta,
+        totalMensajes:   msgs.length,
+        ultimaActividad: lastMsg?.fechaCreacion ? new Date(lastMsg.fechaCreacion).toLocaleString('es-CO') : '',
+      });
+
+      // Colorear estado
+      const estadoCell = row.getCell('estado');
+      if (s.estado === 'resuelto') {
+        estadoCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFdcfce7' } };
+        estadoCell.font = { color: { argb: 'FF166534' }, bold: true };
+      } else {
+        estadoCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFfef9c3' } };
+        estadoCell.font = { color: { argb: 'FF92400e' }, bold: true };
+      }
+    });
+
+    // ── Hoja 2: Detalle de Hilos ──────────────────────────────────────────
+    const sheet2 = workbook.addWorksheet('Detalle de Hilos');
+
+    sheet2.columns = [
+      { header: 'ID Ticket',  key: 'idTicket',    width: 10 },
+      { header: 'Título',     key: 'titulo',      width: 30 },
+      { header: 'Entidad',    key: 'entidad',     width: 25 },
+      { header: 'Estado',     key: 'estado',      width: 12 },
+      { header: '# Mensaje',  key: 'numMensaje',  width: 10 },
+      { header: 'Fecha',      key: 'fecha',       width: 20 },
+      { header: 'Autor',      key: 'autor',       width: 25 },
+      { header: 'Rol',        key: 'rol',         width: 12 },
+      { header: 'Contenido',  key: 'contenido',   width: 65 },
+    ];
+
+    sheet2.getRow(1).fill = headerFill;
+    sheet2.getRow(1).font = headerFont;
+    sheet2.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet2.getRow(1).height = 20;
+    sheet2.getColumn('contenido').alignment = { wrapText: true, vertical: 'top' };
+
+    soportes.forEach((s) => {
+      const msgs = (s.mensajes ?? []).slice().sort(
+        (a, b) => new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime(),
+      );
+
+      msgs.forEach((msg, index) => {
+        const role     = msg.usuario?.role;
+        const rolLabel = role === 'admin' ? 'Admin' : role === 'soporte' ? 'Soporte' : 'Usuario';
+
+        const row = sheet2.addRow({
+          idTicket:   s.id,
+          titulo:     s.titulo || '',
+          entidad:    s.entidad?.nombre || '',
+          estado:     s.estado === 'resuelto' ? 'Atendido' : 'Pendiente',
+          numMensaje: index + 1,
+          fecha:      msg.fechaCreacion ? new Date(msg.fechaCreacion).toLocaleString('es-CO') : '',
+          autor:      msg.usuario?.nombre || '',
+          rol:        rolLabel,
+          contenido:  msg.texto || '',
+        });
+
+        // Mensajes de soporte/admin en azul claro para diferenciarse
+        if (role === 'soporte' || role === 'admin') {
+          row.getCell('contenido').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFeff6ff' } };
+          row.getCell('rol').fill       = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFeff6ff' } };
+          row.getCell('autor').fill     = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFeff6ff' } };
+          row.getCell('rol').font       = { color: { argb: 'FF1e40af' }, bold: true };
+        }
       });
     });
 
