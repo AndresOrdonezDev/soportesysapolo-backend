@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { SoporteMensaje } from './soporte-mensaje.entity';
 
-export type AdjuntoTipo = 'image' | 'pdf' | 'word' | 'otro';
+export type AdjuntoTipo = 'image' | 'pdf' | 'word' | 'excel' | 'otro';
 
 @Entity('soporte_adjuntos')
 export class SoporteAdjunto {

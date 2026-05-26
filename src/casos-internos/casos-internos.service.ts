@@ -370,10 +370,12 @@ export class CasosInternosService {
     if (mime === 'application/pdf') return 'pdf';
     if (
       mime === 'application/msword' ||
-      mime ===
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    )
-      return 'word';
+      mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) return 'word';
+    if (
+      mime === 'application/vnd.ms-excel' ||
+      mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) return 'excel';
     return 'otro';
   }
 

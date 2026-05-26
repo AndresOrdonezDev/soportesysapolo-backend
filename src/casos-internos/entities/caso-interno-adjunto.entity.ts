@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { CasoInternoMensaje } from './caso-interno-mensaje.entity';
 
-export type AdjuntoTipo = 'image' | 'pdf' | 'word' | 'otro';
+export type AdjuntoTipo = 'image' | 'pdf' | 'word' | 'excel' | 'otro';
 
 @Entity('caso_interno_adjuntos')
 export class CasoInternoAdjunto {
