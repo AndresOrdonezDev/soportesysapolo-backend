@@ -24,5 +24,6 @@ import { UsuarioScope } from '../users/entities/usuario-scope.entity';
   ],
   providers: [SoportesService, SoportesGateway],
   controllers: [SoportesController],
+  exports: [SoportesGateway],
 })
 export class SoportesModule {}

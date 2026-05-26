@@ -56,6 +56,7 @@ export class SoportesGateway
       if (payload.role === 'admin') {
         client.join('room-admin');
       } else if (payload.role === 'soporte') {
+        client.join('room-soporte-todos');
         const scopes = await this.scopeRepo.find({ where: { usuarioId: userId } });
         scopes.forEach((s) => client.join(`room-entidad-${s.entidadId}`));
       }
@@ -75,7 +76,7 @@ export class SoportesGateway
   }
 
   // Devuelve los socketIds del emisor para excluirlos con except()
-  private senderSocketIds(senderUserId: number): string[] {
+  senderSocketIds(senderUserId: number): string[] {
     return Array.from(this.userSockets.get(senderUserId) ?? []);
   }
 
