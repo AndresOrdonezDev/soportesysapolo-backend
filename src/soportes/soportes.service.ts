@@ -203,8 +203,9 @@ export class SoportesService {
         );
       }
       soporte.estado = SoporteEstado.PENDIENTE;
+    } else if (user.role === UserRole.ADMIN) {
+      soporte.estado = SoporteEstado.RESUELTO;
     }
-    // Admin responde siempre, no cambia estado automáticamente
 
     const mensaje = this.mensajesRepo.create({
       soporteId,
