@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Soporte } from '../../soportes/entities/soporte.entity';
 import { UsuarioScope } from './usuario-scope.entity';
 
@@ -26,6 +27,7 @@ export class User {
   alias: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column({
@@ -37,6 +39,9 @@ export class User {
 
   @Column({ length: 20, nullable: true })
   telefono: string;
+
+  @Column({ length: 150, nullable: true })
+  email: string | null;
 
   @Column({ default: true })
   activo: boolean;

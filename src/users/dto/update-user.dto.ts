@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsEnum, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsBoolean, IsEmail } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { UserRole } from '../entities/user.entity';
 
 export class UpdateUserDto {
@@ -17,6 +18,11 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   telefono?: string;
+
+  @IsOptional()
+  @IsEmail({}, { message: 'El correo electrónico no es válido' })
+  @Transform(({ value }) => (typeof value === 'string' && value.trim() === '' ? null : value))
+  email?: string | null;
 
   @IsBoolean()
   @IsOptional()

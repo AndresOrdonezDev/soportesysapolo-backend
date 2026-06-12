@@ -17,6 +17,7 @@ import { CreateSoporteDto } from './dto/create-soporte.dto';
 import { CreateMensajeDto } from './dto/create-mensaje.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { SoportesGateway } from './soportes.gateway';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class SoportesService {
@@ -30,6 +31,7 @@ export class SoportesService {
     @InjectRepository(UsuarioScope)
     private scopeRepo: Repository<UsuarioScope>,
     private readonly gateway: SoportesGateway,
+    private readonly mailService: MailService,
   ) {}
 
   // ── Helpers de scope ──────────────────────────────────────────────────────
@@ -224,6 +226,19 @@ export class SoportesService {
 
     const full = await this.loadFull(soporteId);
     this.gateway.emitNuevoMensaje(full, user.id);
+
+    // Notifica por correo al solicitante, salvo que sea él quien acaba de responder
+    if (soporte.usuarioId !== user.id && soporte.usuario?.email) {
+      await this.mailService.sendRespuestaSoporte({
+        to: soporte.usuario.email,
+        nombreUsuario: soporte.usuario.nombre,
+        soporteId,
+        titulo: soporte.titulo,
+        respuesta: dto.texto,
+        autor: user.nombre,
+      });
+    }
+
     return full;
   }
 

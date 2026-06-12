@@ -7,6 +7,7 @@ import { SoportesModule } from './soportes/soportes.module';
 import { EntidadesModule } from './entidades/entidades.module';
 import { AreasModule } from './areas/areas.module';
 import { CasosInternosModule } from './casos-internos/casos-internos.module';
+import { MailModule } from './mail/mail.module';
 import { User } from './users/entities/user.entity';
 import { UsuarioScope } from './users/entities/usuario-scope.entity';
 import { Soporte } from './soportes/entities/soporte.entity';
@@ -35,6 +36,7 @@ import { CasoInternoAdjunto } from './casos-internos/entities/caso-interno-adjun
         synchronize: true,
       }),
     }),
+    MailModule,
     AuthModule,
     UsersModule,
     SoportesModule,

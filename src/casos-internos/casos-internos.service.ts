@@ -19,6 +19,7 @@ import { CreateCasoMensajeDto } from './dto/create-caso-mensaje.dto';
 import { UpdateCasoDto } from './dto/update-caso.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { SoportesGateway } from '../soportes/soportes.gateway';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class CasosInternosService {
@@ -32,6 +33,7 @@ export class CasosInternosService {
     @InjectRepository(User)
     private usersRepo: Repository<User>,
     private readonly gateway: SoportesGateway,
+    private readonly mailService: MailService,
   ) {}
 
   // ── Helpers internos ──────────────────────────────────────────────────────
@@ -210,6 +212,26 @@ export class CasosInternosService {
 
     const full = await this.loadFull(casoId);
     this.emitCasoEvent('caso-actualizado', full, user.id);
+
+    // Notifica por correo a todos los implicados, excepto a quien responde
+    const involucrados = new Map<number, User>();
+    if (caso.creadoPor) involucrados.set(caso.creadoPor.id, caso.creadoPor);
+    for (const asignado of caso.asignadoA ?? []) involucrados.set(asignado.id, asignado);
+    involucrados.delete(user.id);
+
+    for (const destinatario of involucrados.values()) {
+      if (destinatario.email) {
+        await this.mailService.sendRespuestaCasoInterno({
+          to: destinatario.email,
+          nombreUsuario: destinatario.nombre,
+          casoId,
+          titulo: caso.titulo,
+          respuesta: dto.texto,
+          autor: user.nombre,
+        });
+      }
+    }
+
     return full;
   }
 
