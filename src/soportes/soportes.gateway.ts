@@ -13,6 +13,7 @@ import { Soporte } from './entities/soporte.entity';
 import { UsuarioScope } from '../users/entities/usuario-scope.entity';
 
 @WebSocketGateway({
+  path: '/backend/socket.io',
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:4200',
     credentials: true,

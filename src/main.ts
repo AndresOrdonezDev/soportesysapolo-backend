@@ -22,10 +22,10 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('backend/api');
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`Backend running on http://localhost:${port}/api`);
+  console.log(`Backend running on http://localhost:${port}/backend/api`);
 }
 bootstrap();
