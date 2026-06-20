@@ -62,12 +62,10 @@ export class SoportesService {
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.usuario', 'usuario')
       .leftJoinAndSelect('usuario.scope', 'uScope')
-      .leftJoinAndSelect('uScope.area', 'uScopeArea')
       .leftJoinAndSelect('s.entidad', 'entidad')
       .leftJoinAndSelect('s.mensajes', 'mensajes')
       .leftJoinAndSelect('mensajes.usuario', 'mUsuario')
       .leftJoinAndSelect('mUsuario.scope', 'mScope')
-      .leftJoinAndSelect('mScope.area', 'mScopeArea')
       .leftJoinAndSelect('mensajes.adjuntos', 'adjuntos')
       .where('s.id = :id', { id })
       .orderBy('mensajes.fechaCreacion', 'ASC')
@@ -320,8 +318,6 @@ export class SoportesService {
     const qb = this.soportesRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.usuario', 'usuario')
-      .leftJoinAndSelect('usuario.scope', 'exScope')
-      .leftJoinAndSelect('exScope.area', 'exScopeArea')
       .leftJoinAndSelect('s.entidad', 'entidad')
       .leftJoinAndSelect('s.mensajes', 'mensajes')
       .leftJoinAndSelect('mensajes.usuario', 'mUsuario')
@@ -369,7 +365,6 @@ export class SoportesService {
       { header: 'Estado',               key: 'estado',          width: 12 },
       { header: 'Entidad',              key: 'entidad',         width: 28 },
       { header: 'Solicitante',          key: 'solicitante',     width: 25 },
-      { header: 'Área / Oficina',       key: 'area',            width: 20 },
       { header: 'Teléfono',             key: 'telefono',        width: 15 },
       { header: 'Fecha Solicitud',      key: 'fechaSolicitud',  width: 20 },
       { header: 'Descripción inicial',  key: 'descripcion',     width: 45 },
@@ -416,7 +411,6 @@ export class SoportesService {
         estado:          s.estado === 'resuelto' ? 'Atendido' : 'Pendiente',
         entidad:         s.entidad?.nombre || '',
         solicitante:     s.usuario?.nombre || '',
-        area:            s.usuario?.scope?.[0]?.area?.nombre || '',
         telefono:        s.usuario?.telefono || '',
         fechaSolicitud:  s.fechaSolicitud  ? new Date(s.fechaSolicitud).toLocaleString('es-CO')  : '',
         descripcion:     firstMsg?.texto   || '',

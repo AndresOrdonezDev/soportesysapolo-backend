@@ -6,6 +6,7 @@ import {
   IsArray,
   IsEmail,
   IsDateString,
+  IsInt,
 } from 'class-validator';
 
 export class CreateEntidadDto {
@@ -25,4 +26,9 @@ export class CreateEntidadDto {
   @IsDateString()
   @IsOptional()
   fechaVencimientoSoporte?: string;
+
+  @IsArray()
+  @IsInt({ each: true })
+  @IsOptional()
+  moduloIds?: number[];
 }

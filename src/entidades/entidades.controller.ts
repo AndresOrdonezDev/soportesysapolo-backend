@@ -8,7 +8,10 @@ import {
   Param,
   ParseIntPipe,
   UseGuards,
+  Query,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { EntidadesService } from './entidades.service';
 import { CreateEntidadDto } from './dto/create-entidad.dto';
 import { UpdateEntidadDto } from './dto/update-entidad.dto';
@@ -23,8 +26,31 @@ export class EntidadesController {
   constructor(private readonly entidadesService: EntidadesService) {}
 
   @Get()
-  findAll() {
-    return this.entidadesService.findAll();
+  findAll(@Query('moduloIds') moduloIds?: string) {
+    const ids = moduloIds
+      ? moduloIds.split(',').map(Number).filter(Boolean)
+      : undefined;
+    return this.entidadesService.findAll(ids);
+  }
+
+  @Get('export/excel')
+  async exportExcel(
+    @Query('moduloIds') moduloIds: string,
+    @Res() res: Response,
+  ) {
+    const ids = moduloIds
+      ? moduloIds.split(',').map(Number).filter(Boolean)
+      : null;
+    const buffer = await this.entidadesService.exportToExcel(ids);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=entidades.xlsx',
+    );
+    res.send(buffer);
   }
 
   @Get(':id')

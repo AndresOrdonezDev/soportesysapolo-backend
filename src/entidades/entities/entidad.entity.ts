@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Area } from '../../areas/entities/area.entity';
+import { EntidadModulo } from './entidad-modulo.entity';
 
 @Entity('entidades')
 export class Entidad {
@@ -27,6 +27,6 @@ export class Entidad {
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToMany(() => Area, (area) => area.entidad)
-  areas: Area[];
+  @OneToMany(() => EntidadModulo, (em) => em.entidad)
+  entidadModulos: EntidadModulo[];
 }

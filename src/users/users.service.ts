@@ -23,7 +23,7 @@ export class UsersService {
 
   async findAll(): Promise<Omit<User, 'password'>[]> {
     const users = await this.usersRepository.find({
-      relations: ['scope', 'scope.entidad', 'scope.area'],
+      relations: ['scope', 'scope.entidad'],
       order: { createdAt: 'DESC' },
     });
     return users.map(({ password, ...rest }) => rest as User);
@@ -32,7 +32,7 @@ export class UsersService {
   async findOne(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['scope', 'scope.entidad', 'scope.area'],
+      relations: ['scope', 'scope.entidad'],
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return user;
@@ -108,7 +108,7 @@ export class UsersService {
     await this.findOne(userId);
     return this.scopeRepository.find({
       where: { usuarioId: userId },
-      relations: ['entidad', 'area'],
+      relations: ['entidad'],
     });
   }
 
@@ -124,7 +124,6 @@ export class UsersService {
       this.scopeRepository.create({
         usuarioId: userId,
         entidadId: item.entidadId,
-        areaId: item.areaId ?? null,
       }),
     );
 
@@ -132,7 +131,7 @@ export class UsersService {
 
     return this.scopeRepository.find({
       where: saved.map((s) => ({ id: s.id })),
-      relations: ['entidad', 'area'],
+      relations: ['entidad'],
     });
   }
 }

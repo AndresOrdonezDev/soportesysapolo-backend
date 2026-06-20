@@ -7,7 +7,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Entidad } from '../../entidades/entities/entidad.entity';
-import { Area } from '../../areas/entities/area.entity';
 
 @Entity('usuario_scope')
 export class UsuarioScope {
@@ -27,11 +26,4 @@ export class UsuarioScope {
   @ManyToOne(() => Entidad, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'entidadId' })
   entidad: Entidad;
-
-  @Column({ nullable: true })
-  areaId: number | null;
-
-  @ManyToOne(() => Area, { eager: true, nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'areaId' })
-  area: Area | null;
 }

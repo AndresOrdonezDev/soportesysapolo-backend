@@ -5,7 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SoportesModule } from './soportes/soportes.module';
 import { EntidadesModule } from './entidades/entidades.module';
-import { AreasModule } from './areas/areas.module';
+import { ModulosModule } from './modulos/modulos.module';
 import { CasosInternosModule } from './casos-internos/casos-internos.module';
 import { MailModule } from './mail/mail.module';
 import { User } from './users/entities/user.entity';
@@ -14,7 +14,8 @@ import { Soporte } from './soportes/entities/soporte.entity';
 import { SoporteMensaje } from './soportes/entities/soporte-mensaje.entity';
 import { SoporteAdjunto } from './soportes/entities/soporte-adjunto.entity';
 import { Entidad } from './entidades/entities/entidad.entity';
-import { Area } from './areas/entities/area.entity';
+import { EntidadModulo } from './entidades/entities/entidad-modulo.entity';
+import { Modulo } from './modulos/entities/modulo.entity';
 import { CasoInterno } from './casos-internos/entities/caso-interno.entity';
 import { CasoInternoMensaje } from './casos-internos/entities/caso-interno-mensaje.entity';
 import { CasoInternoAdjunto } from './casos-internos/entities/caso-interno-adjunto.entity';
@@ -32,7 +33,7 @@ import { CasoInternoAdjunto } from './casos-internos/entities/caso-interno-adjun
         username: config.get<string>('DB_USER', 'root'),
         password: config.get<string>('DB_PASS', 'root'),
         database: config.get<string>('DB_NAME', 'soportesysapolo'),
-        entities: [User, UsuarioScope, Soporte, SoporteMensaje, SoporteAdjunto, Entidad, Area, CasoInterno, CasoInternoMensaje, CasoInternoAdjunto],
+        entities: [User, UsuarioScope, Soporte, SoporteMensaje, SoporteAdjunto, Entidad, EntidadModulo, Modulo, CasoInterno, CasoInternoMensaje, CasoInternoAdjunto],
         synchronize: true,
       }),
     }),
@@ -41,7 +42,7 @@ import { CasoInternoAdjunto } from './casos-internos/entities/caso-interno-adjun
     UsersModule,
     SoportesModule,
     EntidadesModule,
-    AreasModule,
+    ModulosModule,
     CasosInternosModule,
   ],
 })
