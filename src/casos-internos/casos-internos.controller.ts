@@ -68,6 +68,11 @@ export class CasosInternosController {
     return this.casosService.findEquipo();
   }
 
+  @Get('entidades')
+  findEntidadesDisponibles() {
+    return this.casosService.findEntidadesDisponibles();
+  }
+
   @Get('adjuntos/:id')
   async serveFile(
     @Param('id', ParseIntPipe) id: number,

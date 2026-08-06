@@ -13,6 +13,17 @@ export class UpdateCasoDto {
   asignadoAIds?: number[];
 
   @IsOptional()
+  @IsIn(['todas', 'relacionada'])
+  alcance?: 'todas' | 'relacionada';
+
+  // JSON body — los IDs ya llegan como array de números
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  entidadIds?: number[];
+
+  @IsOptional()
   @IsIn(['abierto', 'cerrado'])
   estado?: 'abierto' | 'cerrado';
 }

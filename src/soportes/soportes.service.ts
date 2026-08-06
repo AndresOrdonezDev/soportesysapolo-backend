@@ -346,7 +346,7 @@ export class SoportesService {
     const soportes = await qb.getMany();
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'SysApolo';
+    workbook.creator = 'Software y Soluciones';
     workbook.created = new Date();
 
     const headerFill: ExcelJS.Fill = {

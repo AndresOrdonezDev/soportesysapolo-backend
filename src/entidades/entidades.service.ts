@@ -124,7 +124,7 @@ export class EntidadesService {
     const entidades = await this.buildFindQuery(moduloIds ?? undefined).getMany();
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'SysApolo';
+    workbook.creator = 'Software y Soluciones';
     workbook.created = new Date();
 
     const headerFill: ExcelJS.Fill = {

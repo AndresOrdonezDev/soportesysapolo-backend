@@ -10,6 +10,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Entidad } from '../../entidades/entities/entidad.entity';
 import { CasoInternoMensaje } from './caso-interno-mensaje.entity';
 
 export enum CasoInternoEstado {
@@ -20,6 +21,11 @@ export enum CasoInternoEstado {
 export enum CasoInternoVisibilidad {
   TODOS = 'todos',
   INDIVIDUAL = 'individual',
+}
+
+export enum CasoInternoAlcance {
+  TODAS = 'todas',
+  RELACIONADA = 'relacionada',
 }
 
 @Entity('casos_internos')
@@ -61,6 +67,21 @@ export class CasoInterno {
     inverseJoinColumn: { name: 'usuarioId', referencedColumnName: 'id' },
   })
   asignadoA: User[];
+
+  @Column({
+    type: 'enum',
+    enum: CasoInternoAlcance,
+    default: CasoInternoAlcance.TODAS,
+  })
+  alcance: CasoInternoAlcance;
+
+  @ManyToMany(() => Entidad, { eager: false })
+  @JoinTable({
+    name: 'caso_interno_entidades',
+    joinColumn: { name: 'casoId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'entidadId', referencedColumnName: 'id' },
+  })
+  entidadesRelacionadas: Entidad[];
 
   @OneToMany(() => CasoInternoMensaje, (m) => m.caso)
   mensajes: CasoInternoMensaje[];

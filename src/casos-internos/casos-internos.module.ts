@@ -6,6 +6,7 @@ import { CasoInterno } from './entities/caso-interno.entity';
 import { CasoInternoMensaje } from './entities/caso-interno-mensaje.entity';
 import { CasoInternoAdjunto } from './entities/caso-interno-adjunto.entity';
 import { User } from '../users/entities/user.entity';
+import { Entidad } from '../entidades/entities/entidad.entity';
 import { SoportesModule } from '../soportes/soportes.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { SoportesModule } from '../soportes/soportes.module';
       CasoInternoMensaje,
       CasoInternoAdjunto,
       User,
+      Entidad,
     ]),
     SoportesModule,
   ],

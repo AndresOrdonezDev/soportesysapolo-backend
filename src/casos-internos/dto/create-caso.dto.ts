@@ -34,4 +34,19 @@ export class CreateCasoDto {
   @IsInt({ each: true })
   @IsPositive({ each: true })
   asignadoAIds?: number[];
+
+  @IsIn(['todas', 'relacionada'])
+  alcance: 'todas' | 'relacionada';
+
+  // FormData puede enviar múltiples valores con la misma clave
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return [];
+    const arr = Array.isArray(value) ? value : [value];
+    return arr.map(Number).filter((n) => Number.isInteger(n) && n > 0);
+  })
+  @IsArray()
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  entidadIds?: number[];
 }

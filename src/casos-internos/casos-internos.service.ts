@@ -11,6 +11,7 @@ import {
   CasoInterno,
   CasoInternoEstado,
   CasoInternoVisibilidad,
+  CasoInternoAlcance,
 } from './entities/caso-interno.entity';
 import { CasoInternoMensaje } from './entities/caso-interno-mensaje.entity';
 import { CasoInternoAdjunto, AdjuntoTipo } from './entities/caso-interno-adjunto.entity';
@@ -18,6 +19,7 @@ import { CreateCasoDto } from './dto/create-caso.dto';
 import { CreateCasoMensajeDto } from './dto/create-caso-mensaje.dto';
 import { UpdateCasoDto } from './dto/update-caso.dto';
 import { User, UserRole } from '../users/entities/user.entity';
+import { Entidad } from '../entidades/entities/entidad.entity';
 import { SoportesGateway } from '../soportes/soportes.gateway';
 import { MailService } from '../mail/mail.service';
 
@@ -32,6 +34,8 @@ export class CasosInternosService {
     private adjuntosRepo: Repository<CasoInternoAdjunto>,
     @InjectRepository(User)
     private usersRepo: Repository<User>,
+    @InjectRepository(Entidad)
+    private entidadesRepo: Repository<Entidad>,
     private readonly gateway: SoportesGateway,
     private readonly mailService: MailService,
   ) {}
@@ -43,6 +47,7 @@ export class CasosInternosService {
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.creadoPor', 'creadoPor')
       .leftJoinAndSelect('c.asignadoA', 'asignadoA')
+      .leftJoinAndSelect('c.entidadesRelacionadas', 'entidadesRelacionadas')
       .leftJoinAndSelect('c.mensajes', 'mensajes')
       .leftJoinAndSelect('mensajes.usuario', 'mUsuario')
       .leftJoinAndSelect('mensajes.adjuntos', 'adjuntos')
@@ -98,6 +103,7 @@ export class CasosInternosService {
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.creadoPor', 'creadoPor')
       .leftJoinAndSelect('c.asignadoA', 'asignadoA')
+      .leftJoinAndSelect('c.entidadesRelacionadas', 'entidadesRelacionadas')
       .leftJoinAndSelect('c.mensajes', 'mensajes')
       .leftJoinAndSelect('mensajes.usuario', 'mUsuario')
       .orderBy('c.fechaCreacion', 'DESC');
@@ -139,6 +145,16 @@ export class CasosInternosService {
     });
   }
 
+  // ── findEntidadesDisponibles ─────────────────────────────────────────────
+
+  async findEntidadesDisponibles(): Promise<Pick<Entidad, 'id' | 'nombre'>[]> {
+    return this.entidadesRepo.find({
+      where: { estado: true },
+      order: { nombre: 'ASC' },
+      select: ['id', 'nombre'],
+    });
+  }
+
   // ── create ────────────────────────────────────────────────────────────────
 
   async create(
@@ -162,6 +178,15 @@ export class CasosInternosService {
       });
     } else {
       caso.asignadoA = [];
+    }
+
+    caso.alcance = dto.alcance as CasoInternoAlcance;
+    if (dto.alcance === 'relacionada' && dto.entidadIds?.length) {
+      caso.entidadesRelacionadas = await this.entidadesRepo.findBy({
+        id: In(dto.entidadIds),
+      });
+    } else {
+      caso.entidadesRelacionadas = [];
     }
 
     const savedCaso = await this.casosRepo.save(caso);
@@ -268,6 +293,26 @@ export class CasosInternosService {
         : [];
       if (caso.asignadoA.length > 0) {
         caso.visibilidad = CasoInternoVisibilidad.INDIVIDUAL;
+      }
+    }
+
+    if (dto.alcance === 'todas') {
+      caso.alcance = CasoInternoAlcance.TODAS;
+      caso.entidadesRelacionadas = [];
+    } else if (dto.alcance === 'relacionada') {
+      caso.alcance = CasoInternoAlcance.RELACIONADA;
+      if (dto.entidadIds !== undefined) {
+        caso.entidadesRelacionadas = dto.entidadIds.length
+          ? await this.entidadesRepo.findBy({ id: In(dto.entidadIds) })
+          : [];
+      }
+    } else if (dto.entidadIds !== undefined) {
+      // Actualiza solo las entidades sin cambiar el alcance
+      caso.entidadesRelacionadas = dto.entidadIds.length
+        ? await this.entidadesRepo.findBy({ id: In(dto.entidadIds) })
+        : [];
+      if (caso.entidadesRelacionadas.length > 0) {
+        caso.alcance = CasoInternoAlcance.RELACIONADA;
       }
     }
 
